@@ -43,6 +43,10 @@ namespace OIS
 		//! hanlde xinput
 		void captureXInput();
 
+        /** Windows-only; Captures DirectInput device state.
+         **/
+        virtual bool getWin32DISnapshot(JoyDIStateSnap* snap);
+
 		/** @copydoc Object::queryInterface */
 		virtual Interface* queryInterface(Interface::IType type);
 
@@ -76,6 +80,8 @@ namespace OIS
 		DWORD coopSetting;
 
         JoyStickInfo mJoyInfo;
+        JoyDIStateSnap mSnap;
+        bool           mSnapOk;
 
 		//! A force feedback device
 		Win32ForceFeedback* mFfDevice;

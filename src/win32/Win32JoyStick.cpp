@@ -280,6 +280,21 @@ void Win32JoyStick::capture()
 			return;
 	}
 
+    // Get the input's device state
+    mSnapOk = false;
+    DIJOYSTATE2 js;
+    if( !FAILED( hr = mJoyStick->GetDeviceState( sizeof( DIJOYSTATE2 ), &js ) ) )
+    {
+        mSnap.posX = js.lX;
+        mSnap.posY = js.lY;
+        mSnap.posZ = js.lZ;
+
+        mSnap.rotX = js.lRx;
+        mSnap.rotY = js.lRy;
+        mSnap.rotZ = js.lRz;
+        mSnapOk = true;
+    }
+
 	bool axisMoved[24] = {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,
 						  false,false,false,false,false,false,false,false};
 	bool sliderMoved[4] = {false,false,false,false};
@@ -543,6 +558,61 @@ bool Win32JoyStick::_changePOV( int pov, DIDEVICEOBJECTDATA& di )
 		return mListener->povMoved( JoyStickEvent( this, mState ), pov );
 
 	return true;
+}
+
+//--------------------------------------------------------------------------------------------------//
+// Windows-only extension by Rigs of Rods project
+bool Win32JoyStick::getWin32DISnapshot(JoyDIStateSnap* snap)
+{
+    *snap = mSnap;
+    return mSnapOk;
+#if 0 ////////////////////////// disabled ///////////////////////////
+
+    // $$ Following code is ported from DirectInput demo code by Microsoft
+    // $$ Released under MIT license
+    // $$ See https://github.com/walbourn/directx-sdk-samples
+
+    HRESULT hr;
+
+    // Poll the device to read the current state
+    hr = mJoyStick->Poll();
+    if( FAILED( hr ) )
+    {
+        // DInput is telling us that the input stream has been
+        // interrupted. We aren't tracking any state between polls, so
+        // we don't have any special reset that needs to be done. We
+        // just re-acquire and try again.
+        hr = mJoyStick->Acquire();
+        while( hr == DIERR_INPUTLOST )
+        {
+            hr = mJoyStick->Acquire();
+        }
+
+        // hr may be DIERR_OTHERAPPHASPRIO or other errors.  This
+        // may occur when the app is minimized or in the process of 
+        // switching, so just try again later 
+        return false;
+    }
+
+    // Get the input's device state
+    DIJOYSTATE2 js;
+    if( FAILED( hr = mJoyStick->GetDeviceState( sizeof( DIJOYSTATE2 ), &js ) ) )
+    {
+        return false; // The device should have been acquired during the Poll()
+    }
+
+    JoyDIStateSnap data;
+
+    mSnap.posX = js.lX;
+    mSnap.posY = js.lY;
+    mSnap.posZ = js.lZ;
+
+    mSnap.rotX = js.lRx;
+    mSnap.rotY = js.lRy;
+    mSnap.rotZ = js.lRz;
+
+    *snap = data;
+#endif
 }
 
 //--------------------------------------------------------------------------------------------------//

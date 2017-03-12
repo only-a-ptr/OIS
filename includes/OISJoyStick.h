@@ -156,6 +156,24 @@ namespace OIS
 		//! Joystick Event, and Vector3ID
 		virtual bool vector3Moved( const JoyStickEvent &arg, int index) { OIS_UNUSED(arg); OIS_UNUSED(index); return true; }
 	};
+    
+    /**
+        Windows-only extension by Rigs of Rods project
+        carries state data from DIJOYSTATE2 obtained with DIRECTINPUTDEVICE8::GetDeviceState()
+        See https://code.msdn.microsoft.com/windowsdesktop/DirectInput-Samples-8ac6f5e3
+    */
+    class _OISExport JoyDIStateSnap
+    {
+    public: 
+    
+        size_t posX;
+        size_t posY;
+        size_t posZ;
+        
+        size_t rotX;
+        size_t rotY;
+        size_t rotZ;
+    };
 
 	/**
 		Joystick base class. To be implemented by specific system (ie. DirectX joystick)
@@ -189,6 +207,12 @@ namespace OIS
 			Returns the sensitivity cutoff for Vector3 Component
 		*/
 		float getVector3Sensitivity() const;
+        
+        /// Extension by Rigs of Rods
+        virtual bool getWin32DISnapshot(JoyDIStateSnap* snap)
+        {
+            return false;
+        }
 
 		/**
 		@remarks
